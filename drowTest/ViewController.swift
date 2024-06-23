@@ -47,12 +47,41 @@ let secondColorButtons: [UIButton] = [
     
 ]
 
-//MARK: undo and clear buttons
-func undoAndClearButtons(iconForButton: UIImage, tag: Int) -> UIButton {
+let backgroundColors: [UIButton] = [
+    customColorButtonss(colorsButton: .red, tag: 1),
+    customColorButtonss(colorsButton: .blue, tag: 2),
+    customColorButtonss(colorsButton: .yellow, tag: 3),
+    customColorButtonss(colorsButton: .green, tag: 4),
+    customColorButtonss(colorsButton: .brown, tag: 5),
+    secondCustomColorButtons(colorsButton: .gray, tag: 6),
+    secondCustomColorButtons(colorsButton: .orange, tag: 7),
+    secondCustomColorButtons(colorsButton: .purple, tag: 8),
+    secondCustomColorButtons(colorsButton: .white, tag: 9),
+    secondCustomColorButtons(colorsButton: .black, tag: 10)
+]
+
+func backgroundColors(iconForButton: UIImage, tag: Int) -> UIButton {
     let button = UIButton()
+    button.tag = tag
     button.setBackgroundImage(iconForButton, for: .normal)
     return button
 }
+
+//MARK: undo and clear buttons
+func undoAndClearButtons(iconForButton: UIImage, tag: Int) -> UIButton {
+    let button = UIButton()
+    button.tag = tag
+    button.setBackgroundImage(iconForButton, for: .normal)
+    return button
+}
+
+let undoAndClearButton: [UIButton] = [
+    undoAndClearButtons(iconForButton: UIImage(systemName: "arrow.uturn.backward.circle")!, tag: 1),
+    undoAndClearButtons(iconForButton: UIImage(systemName: "xmark.circle")!, tag: 2),
+]
+
+
+
 var widthValue: CGFloat = 1.0
 var colorBrush: CGColor = UIColor.black.cgColor
 
@@ -75,6 +104,7 @@ class draw: UIView {
         
         lines.forEach { (line) in
             context.setLineWidth(line.width)
+            print(line.points)
             context.setStrokeColor(line.colorBrush)
             
             for (i, p) in line.points.enumerated() {
@@ -115,14 +145,22 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
     let backgroundPicker = UIImagePickerController()
     let addImageToBG = UIButton()
     var backgroundImage: UIImage = .init()
+    let imageView = CALayer()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setuoBackgroundColor()
         view.addSubview(drawLine)
         drawLine.frame = view.frame
-        drawLine.backgroundColor = .white
+        drawLine.backgroundColor = .clear
         setupButtons()
         setupImagePicker()
+    }
+    
+    private func setuoBackgroundColor(){
+        view.layer.addSublayer(imageView)
+        imageView.frame = view.bounds
+        imageView.backgroundColor = UIColor.white.cgColor
     }
     
     private func setupImagePicker(){
@@ -160,7 +198,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
         chooseWidthOfLine.addTarget(self, action: #selector(sliderAction(sender:)), for: .valueChanged)
         
         
-        //first horizontal color buttons for choose color brush
+        //MARK: first horizontal color buttons for choose color brush
         let buttonsStack = UIStackView()
         view.addSubview(buttonsStack)
         buttonsStack.frame = CGRect(x: 200,
@@ -179,7 +217,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
             tags.addTarget(self, action: #selector(didTapColor(sender: )), for: .touchUpInside)
         }
         
-        //second horizontal color buttons for choose color brush
+        //MARK: second horizontal color buttons for choose color brush
         let secondButtonsStack = UIStackView()
         view.addSubview(secondButtonsStack)
         secondButtonsStack.frame = CGRect(x: 200,
@@ -198,7 +236,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
             tags.addTarget(self, action: #selector(didTapColor(sender: )), for: .touchUpInside)
         }
         
-        //undo and clear buttons
+        //MARK: Undo and Clear Buttons
         let uacButtonsStack = UIStackView()
         view.addSubview(uacButtonsStack)
         uacButtonsStack.frame = CGRect(x: 18,
@@ -208,6 +246,34 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
         uacButtonsStack.axis = .horizontal
         uacButtonsStack.spacing = 5.0
         uacButtonsStack.distribution = .fillEqually
+        
+        undoAndClearButton.forEach { button in
+            uacButtonsStack.addArrangedSubview(button)
+        }
+        
+        for tags in undoAndClearButton {
+            tags.addTarget(self, action: #selector(didTapUac(sender: )), for: .touchUpInside)
+        }
+        
+        //MARK: choose background color
+        let cBCStack = UIStackView()
+        view.addSubview(cBCStack)
+        cBCStack.frame = CGRect(x: 18,
+                                y: 50,
+                                width: 340,
+                                height: 30)
+        cBCStack.axis = .horizontal
+        cBCStack.spacing = 5.0
+        cBCStack.distribution = .fillEqually
+        
+        backgroundColors.forEach { button in
+            cBCStack.addArrangedSubview(button)
+        }
+        
+        for tags in backgroundColors {
+            tags.addTarget(self, action: #selector(didTapBackgroundColor(sender: )), for: .touchUpInside)
+        }
+        
         
     }
     
@@ -240,6 +306,53 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
         default:
             colorBrush = UIColor.black.cgColor
             
+        }
+    }
+    
+    @objc func didTapUac(sender: UIButton){
+        switch sender.tag {
+        case 1:
+            if !drawLine.lines.isEmpty {
+                drawLine.lines.removeLast()
+                drawLine.setNeedsDisplay()
+                print("undo")
+            } else {
+                print("lines are empty")
+            }
+            
+        case 2:
+            print("clear")
+            drawLine.lines.removeAll()
+            drawLine.setNeedsDisplay()
+        default:
+            print("default")
+        }
+    }
+    
+    @objc func didTapBackgroundColor(sender: UIButton){
+        switch sender.tag {
+        case 1:
+            imageView.backgroundColor = UIColor.red.cgColor
+        case 2:
+            imageView.backgroundColor = UIColor.blue.cgColor
+        case 3:
+            imageView.backgroundColor = UIColor.yellow.cgColor
+        case 4:
+            imageView.backgroundColor = UIColor.green.cgColor
+        case 5:
+            imageView.backgroundColor = UIColor.brown.cgColor
+        case 6:
+            imageView.backgroundColor = UIColor.gray.cgColor
+        case 7:
+            imageView.backgroundColor = UIColor.orange.cgColor
+        case 8:
+            imageView.backgroundColor = UIColor.purple.cgColor
+        case 9:
+            imageView.backgroundColor = UIColor.white.cgColor
+        case 10:
+            imageView.backgroundColor = UIColor.black.cgColor
+        default:
+            print("default")
         }
     }
 }
